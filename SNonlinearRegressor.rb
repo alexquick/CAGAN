@@ -1,5 +1,5 @@
 require "SRegressionContext.rb"
-require "Matrix.rb"
+require "matrix.rb"
 class SNonlinearRegressor
 
   def estimate (table, lhs, current_estimators, &f)
