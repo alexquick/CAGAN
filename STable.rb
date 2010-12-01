@@ -8,22 +8,31 @@ class STable
     @data = []
     @rows = 0
     @cols = 0
-    f = File.new(file)
-    f.each("\r") do |line|
-      parts = line.split(",")
-      if(@headers.empty?)
-        @headers = parts.map{|p| p.strip.to_sym}
-        @cols = parts.size
-      else
-        @data << SRow.new(self, @rows, parts.map{|p| p.strip.to_f})
+    
+    if(file.is_a? Numeric)
+      rows = file
+      rows.times do
+        @data << SRow.new(self, @rows, [])
         @rows = @rows + 1
+      end
+    else
+      f = File.new(file)
+      f.each("\r") do |line|
+        parts = line.split(",")
+        if(@headers.empty?)
+          @headers = parts.map{|p| p.strip.to_sym}
+          @cols = parts.size
+        else
+          @data << SRow.new(self, @rows, parts.map{|p| p.strip.to_f})
+          @rows = @rows + 1
+        end
       end
     end
   end
   
   def gen(symb, &b)
     @data.each do|row|
-      row.append(b.call(row))
+      row.append(b.call(row).to_f)
     end
     @headers << symb
     @cols = @cols + 1
