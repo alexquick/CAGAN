@@ -4,7 +4,7 @@ class SRegressionContext
     @row = row
     @table = table
     @estimator_hash = estimator_hash
-  end
+  end    
   
   def method_missing(name, *args)
     sym = name.to_sym
