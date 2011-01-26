@@ -1,35 +1,44 @@
-class STable
+
+# Table of rows and columns
+# Pretty simple stuff
+class CaganTable
+  
   @data = nil
   @headers = nil
   @rows = 0
   @cols = 0
-  def initialize(file)
+  
+  # Create from csv formated file 
+  # or make a table with given number of rows
+  #
+  def initialize(file_or_rowcount)
     @headers = []
     @data = []
     @rows = 0
     @cols = 0
     
-    if(file.is_a? Numeric)
-      rows = file
+    if(file_or_rowcount.is_a? Numeric)
+      rows = file_or_rowcount
       rows.times do
-        @data << SRow.new(self, @rows, [])
+        @data << CaganRow.new(self, @rows, [])
         @rows = @rows + 1
       end
     else
-      f = File.new(file)
+      f = File.new(file_or_rowcount)
       f.each("\r") do |line|
         parts = line.split(",")
         if(@headers.empty?)
           @headers = parts.map{|p| p.strip.to_sym}
           @cols = parts.size
         else
-          @data << SRow.new(self, @rows, parts.map{|p| p.strip.to_f})
+          @data << CaganRow.new(self, @rows, parts.map{|p| p.strip.to_f})
           @rows = @rows + 1
         end
       end
     end
   end
   
+  #generate a new column named symb based on block that is passed each row
   def gen(symb, &b)
     @data.each do|row|
       row.append(b.call(row).to_f)
@@ -38,6 +47,7 @@ class STable
     @cols = @cols + 1
   end
   
+  #print this puppy out
   def to_s
     s = "h)\t"
     @headers.each do |h|
@@ -71,16 +81,21 @@ class STable
     return @data[i]
   end
   
-  class SRow
+  class CaganRow
     @table
     @data
     @index
+    
     def initialize(table, i, data)
       @table = table
       @data = data
       @index = i
     end
     def index
+      return @index
+    end
+    
+    def i
       return @index
     end
     
@@ -102,7 +117,7 @@ class STable
         before = @table[@index-1]
         ddata = Array.new(@data.length){|i| @data[i]-before[i]}
       end
-      return SRow.new(@table, di, ddata)
+      return CaganRow.new(@table, di, ddata)
     end
     
     def length

@@ -1,0 +1,52 @@
+##
+## Nonlinear regressor.
+## Screw reading me, let's write some damn code!
+##
+
+include Math
+require "pp.rb"
+require "CaganTable.rb"
+require "CaganRegressionContext.rb"
+require "CaganNonlinearRegressor.rb"
+
+# Make a table
+table = CaganTable.new(10)
+
+# Make up some values for it
+table.gen(:x1) do |row|
+  row.i
+end
+table.gen(:x2) do |row|
+  row.i - 30
+end
+
+# Make something to predict
+table.gen(:y) do |row|
+  5 * row[:x1] ** 2 + 4 * row[:x1] * row[:x2] + 15 * exp(row[:x2])
+end
+
+# And get to predicting
+nl = CaganNonlinearRegressor.new
+res = nl.estimate(table, :y, {:a=>3.63, :b=>0.15, :c=>0.5}) do |c|
+  c.a * c.x1 ** 2 + c.b * c.x1 * c.x2 + c.c * exp(c.x2)
+end
+pp res
+
+res == {:best=>
+         {:estimators=>{:b=>4.0, :a=>5.0, :c=>15.0}, 
+           :error=>{:r_sq=>0.0, :r=>0.0}
+         },
+         :r_sq=>1.0,
+         :r=>1.0,
+         :predict=>
+          [[0, 1.40364344532603e-12, 1.40364344532603e-12, 0.0, 0.0],
+           [1, -110.999999999996, -110.999999999996, 0.0, 0.0],
+           [2, -203.99999999999, -203.99999999999, 0.0, 0.0],
+           [3, -278.999999999972, -278.999999999972, 0.0, 0.0],
+           [4, -335.999999999923, -335.999999999923, 0.0, 0.0],
+           [5, -374.999999999792, -374.999999999792, 0.0, 0.0],
+           [6, -395.999999999434, -395.999999999434, 0.0, 0.0],
+           [7, -398.999999998461, -398.999999998461, 0.0, 0.0],
+           [8, -383.999999995816, -383.999999995816, 0.0, 0.0],
+           [9, -350.999999988626, -350.999999988626, 0.0, 0.0]]
+       }

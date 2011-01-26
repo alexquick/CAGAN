@@ -1,6 +1,13 @@
 include Math
-require "STable.rb"
-require "SNonlinearRegressor.rb"
+require "../CaganTable.rb"
+require "../CaganRegressionContext.rb"
+require "../CaganNonlinearRegressor.rb"
+
+# Some code exercising the NLR.
+# Polynomials work fine.
+# Mess around with the cagan stuff to test it out for real
+# because those functions are not analytic
+# (you might get a singularity)
 
 def sum(from, to, &b)
   accumulator = 0.0
@@ -22,8 +29,8 @@ def dump(res)
 end
 
 def cagan(table)
-  nl = SNonlinearRegressor.new
-  res = nl.estimate(table, :real_bal, {:alpha=>9.7, :beta=>0.10, :lambda=>3.0}) do |c|
+  nl = CaganNonlinearRegressor.new
+  res = nl.estimate(table, :real_bal,  {:alpha=>3.63, :beta=>0.15, :lambda=>-5.4}) do |c|
     if(c.beta < 0.0001)
       est_T = table.rows
     else
@@ -32,6 +39,7 @@ def cagan(table)
       est_T = -(log(i)/c.beta)+0
       est_T = est_T.round
     end
+    est_T = c.i-1 if c.i != 0
     lbound = 0
     lbound = c.i - est_T if(c.i > est_T)
     c.alpha * -1 * ((1-exp(c.beta))/(exp(c.beta * c.i))) * sum(lbound,c.i){|x| c[x].c * exp(c.beta * x)} - c.lambda
@@ -40,43 +48,41 @@ def cagan(table)
 end
 
 def modified_cagan(table)
-  nl = SNonlinearRegressor.new
-  res = nl.estimate(table, :real_bal, {:alpha=>9.7, :beta=>0.10, :lambda=>3.0}) do |c|
+  nl = CaganNonlinearRegressor.new
+  res = nl.estimate(table, :real_bal, {:alpha=>3.63, :beta=>0.15, :lambda=>-5.4}) do |c|
     c.alpha * c.c + c.beta * log(c.c) + c.lambda
   end
   return res
 end
 
 def england
-  m = STable.new("hengland.csv")
+  m = CaganTable.new("hengland.csv")
   m.gen(:ln_p) {|r| log10(r[:p])}
   m.gen(:ln_m) {|r| log10(r[:m])}
   m.gen(:real_bal){|r| log10(r[:m]/r[:p])}
   res = cagan(m)
-  dump res
 end
 
 def hungary
-  m = STable.new("hungary2.csv")
+  m = CaganTable.new("hungary2.csv")
   m.gen(:real_bal) do |row|
     log(1/(10**row[:log_p_m]))
   end
   res = cagan(m)
-  dump res
 end
 
 def poly
-  m = STable.new(200)
+  m = CaganTable.new(200)
   x = -100
   m.gen(:x){|r|x+=1; x;}
   m.gen(:y){|r|5*r[:x] - (4*r[:x]**2) + 56.5}
   puts m
-  nl = SNonlinearRegressor.new
+  nl = CaganNonlinearRegressor.new
   res = nl.estimate(m, :y, {:a=>-5.0, :b=>4.00, :c=>-10, :d=>3}) do |c|
     (c.a * c.x) + (c.b * (c.x**2)) + (c.c * (c.x**3)) + c.d
   end
   dump res
 end
 
-hungary
+poly
 
