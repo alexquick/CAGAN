@@ -5,12 +5,10 @@
 
 include Math
 require "pp.rb"
-require "CaganTable.rb"
-require "CaganRegressionContext.rb"
-require "CaganNonlinearRegressor.rb"
-
+require "lib/cagan.rb"
+include Cagan
 # Make a table
-table = CaganTable.new(10)
+table = Table.new(10)
 
 # Make up some values for it
 table.gen(:x1) do |row|
@@ -26,7 +24,7 @@ table.gen(:y) do |row|
 end
 
 # And get to predicting
-nl = CaganNonlinearRegressor.new
+nl = NonlinearRegressor.new
 res = nl.estimate(table, :y, {:a=>3.63, :b=>0.15, :c=>0.5}) do |c|
   c.a * c.x1 ** 2 + c.b * c.x1 * c.x2 + c.c * exp(c.x2)
 end

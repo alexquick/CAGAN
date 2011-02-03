@@ -1,13 +1,13 @@
 include Math
-require "../CaganTable.rb"
-require "../CaganRegressionContext.rb"
-require "../CaganNonlinearRegressor.rb"
+require "../Table.rb"
+require "../RegressionContext.rb"
+require "../NonlinearRegressor.rb"
 
 # Some code exercising the NLR.
 # Polynomials work fine.
 # Mess around with the cagan stuff to test it out for real
 # because those functions are not analytic
-# (you might get a singularity)
+# (you might get a singular matrix)
 
 def sum(from, to, &b)
   accumulator = 0.0
@@ -29,7 +29,7 @@ def dump(res)
 end
 
 def cagan(table)
-  nl = CaganNonlinearRegressor.new
+  nl = NonlinearRegressor.new
   res = nl.estimate(table, :real_bal,  {:alpha=>3.63, :beta=>0.15, :lambda=>-5.4}) do |c|
     if(c.beta < 0.0001)
       est_T = table.rows
@@ -48,7 +48,7 @@ def cagan(table)
 end
 
 def modified_cagan(table)
-  nl = CaganNonlinearRegressor.new
+  nl = NonlinearRegressor.new
   res = nl.estimate(table, :real_bal, {:alpha=>3.63, :beta=>0.15, :lambda=>-5.4}) do |c|
     c.alpha * c.c + c.beta * log(c.c) + c.lambda
   end
@@ -56,7 +56,7 @@ def modified_cagan(table)
 end
 
 def england
-  m = CaganTable.new("hengland.csv")
+  m = Table.new("hengland.csv")
   m.gen(:ln_p) {|r| log10(r[:p])}
   m.gen(:ln_m) {|r| log10(r[:m])}
   m.gen(:real_bal){|r| log10(r[:m]/r[:p])}
@@ -64,7 +64,7 @@ def england
 end
 
 def hungary
-  m = CaganTable.new("hungary2.csv")
+  m = Table.new("hungary2.csv")
   m.gen(:real_bal) do |row|
     log(1/(10**row[:log_p_m]))
   end
@@ -72,12 +72,12 @@ def hungary
 end
 
 def poly
-  m = CaganTable.new(200)
+  m = Table.new(200)
   x = -100
   m.gen(:x){|r|x+=1; x;}
   m.gen(:y){|r|5*r[:x] - (4*r[:x]**2) + 56.5}
   puts m
-  nl = CaganNonlinearRegressor.new
+  nl = NonlinearRegressor.new
   res = nl.estimate(m, :y, {:a=>-5.0, :b=>4.00, :c=>-10, :d=>3}) do |c|
     (c.a * c.x) + (c.b * (c.x**2)) + (c.c * (c.x**3)) + c.d
   end
